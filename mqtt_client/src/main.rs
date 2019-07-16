@@ -159,7 +159,9 @@ fn main() {
     let port_name = serial_module::get_portname();
     let mut serial_port = serial_module::init_serial_port(port_name);
     let mut serial_read = serial_port.try_clone().expect("failed to clone the port");
-    let address_vector: Vec<u8> = vec![];
+    /* let address_vector: Vec<u8> = vec![];
+    let address_vector_mutex = Arc::new(Mutex::new(address_vector)); */
+    let mut address_count = Arc::new(Mutex::new(0));
     let serial_io = thread::spawn(move || loop {
         match rx4.try_recv() {
             Ok(msg_string) => {
@@ -179,7 +181,10 @@ fn main() {
                                     if bytes == 1 {
                                         let received = buffer[0];
                                         if received == 255 {
-                                            let address: Vec<u8> = vec![get_address(&address_vector)];
+                                            let mut address_count = address_count.lock().unwrap();
+                                            *address_count+=1;
+                                          /*   let address: Vec<u8> = vec![get_address(&*address_v)]; */
+                                            let mut address: Vec<u8> = vec![address_count.clone()];
                                             serial_port.write(&address);
                                            
                                             
